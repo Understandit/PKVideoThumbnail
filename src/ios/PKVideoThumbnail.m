@@ -35,7 +35,7 @@ BOOL extractVideoThumbnail ( NSString *theSourceVideoName,
     UIImage *thumbnail;
     NSURL *url;
     NSString *revisedTargetImageName = [[theTargetImageName stringByReplacingOccurrencesOfString:@"file://" withString:@""] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-  
+
     if ( [theSourceVideoName rangeOfString:@"://"].location == NSNotFound )
     {
       url = [NSURL URLWithString:[[@"file://localhost" stringByAppendingString:theSourceVideoName]
@@ -45,7 +45,7 @@ BOOL extractVideoThumbnail ( NSString *theSourceVideoName,
     {
       url = [NSURL URLWithString:[theSourceVideoName stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
     }
-    
+
     // BASED ON http://stackoverflow.com/a/6432050 //
     MPMoviePlayerController *mp = [[MPMoviePlayerController alloc]
       initWithContentURL: url ];
@@ -65,27 +65,23 @@ BOOL extractVideoThumbnail ( NSString *theSourceVideoName,
 - (void) createThumbnail:(CDVInvokedUrlCommand*)command
 {
     CDVPluginResult* pluginResult = nil;
-    NSString* javaScript = nil;
 
     @try {
         NSString* theSourceVideoName = [command.arguments objectAtIndex:0];
         NSString* theTargetImageName = [command.arguments objectAtIndex:1];
-        
+
         if ( extractVideoThumbnail(theSourceVideoName, theTargetImageName) )
         {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:theTargetImageName];
-            javaScript = [pluginResult toSuccessCallbackString:command.callbackId];
         }
         else
         {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:theTargetImageName];
-            javaScript = [pluginResult toErrorCallbackString:command.callbackId];
         }
     } @catch (NSException* exception) {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION messageAsString:[exception reason]];
-        javaScript = [pluginResult toErrorCallbackString:command.callbackId];
     }
 
-    [self writeJavascript:javaScript];
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 @end
